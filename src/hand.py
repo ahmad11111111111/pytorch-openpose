@@ -3,7 +3,7 @@ import json
 import numpy as np
 import math
 import time
-from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
 import matplotlib
 import torch
@@ -16,8 +16,15 @@ class Hand(object):
     def __init__(self, model_path):
         self.model = handpose_model()
         if torch.cuda.is_available():
-            self.model = self.model.cuda()
-        model_dict = util.transfer(self.model, torch.load(model_path))
+            device = torch.device('cuda')
+        elif getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available():
+            device = torch.device('mps')
+        else:
+            device = torch.device('cpu')
+        self.device = device
+        self.model.to(self.device)
+        state = torch.load(model_path, map_location='cpu')
+        model_dict = util.transfer(self.model, state)
         self.model.load_state_dict(model_dict)
         self.model.eval()
 
@@ -39,9 +46,7 @@ class Hand(object):
             im = np.transpose(np.float32(imageToTest_padded[:, :, :, np.newaxis]), (3, 2, 0, 1)) / 256 - 0.5
             im = np.ascontiguousarray(im)
 
-            data = torch.from_numpy(im).float()
-            if torch.cuda.is_available():
-                data = data.cuda()
+            data = torch.from_numpy(im).float().to(self.device)
             # data = data.permute([2, 0, 1]).unsqueeze(0).float()
             with torch.no_grad():
                 output = self.model(data).cpu().numpy()

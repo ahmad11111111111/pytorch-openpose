@@ -78,10 +78,10 @@ def draw_handpose(canvas, all_hand_peaks, show_number=False):
     edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], \
              [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19], [19, 20]]
     fig = Figure(figsize=plt.figaspect(canvas))
-
     fig.subplots_adjust(0, 0, 1, 1)
     fig.subplots_adjust(bottom=0, top=1, left=0, right=1)
-    bg = FigureCanvas(fig)
+    # Attach an Agg canvas to the figure
+    FigureCanvas(fig)
     ax = fig.subplots()
     ax.axis('off')
     ax.imshow(canvas)
@@ -100,8 +100,10 @@ def draw_handpose(canvas, all_hand_peaks, show_number=False):
             ax.plot(x, y, 'r.')
             if show_number:
                 ax.text(x, y, str(i))
-    bg.draw()
-    canvas = np.fromstring(bg.tostring_rgb(), dtype='uint8').reshape(int(height), int(width), 3)
+    # Render and extract as RGBA buffer, then drop alpha
+    fig.canvas.draw()
+    rgba = np.asarray(fig.canvas.buffer_rgba())
+    canvas = rgba[:, :, :3].copy()
     return canvas
 
 # image drawed by opencv is not good.

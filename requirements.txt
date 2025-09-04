@@ -1,6 +1,10 @@
-numpy
-matplotlib
-opencv-python
-scipy
-scikit-image
-tqdm
+numpy>=1.22
+matplotlib>=3.6
+opencv-python>=4.7
+scipy>=1.9
+scikit-image>=0.20
+tqdm>=4.64
+
+# PyTorch with MPS (Apple Silicon/Intel macOS). Install wheels from PyPI.
+torch>=2.2
+torchvision>=0.17
